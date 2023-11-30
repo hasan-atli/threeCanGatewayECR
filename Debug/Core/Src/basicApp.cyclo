@@ -1,0 +1,5 @@
+basicApp.c:58:6:Init_CanA	3
+basicApp.c:89:6:Init_CanB	5
+basicApp.c:132:6:Init_CanC	2
+basicApp.c:158:6:Init_Basic_App	1
+basicApp.c:179:7:Compare_Is_Incoming_Message_Different_From_Previous_Message	17

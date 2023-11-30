@@ -1,0 +1,4 @@
+debug.c:13:6:dbgPrintf	1
+debug.c:24:6:dbgPrint	1
+debug.c:29:6:dbgPrintByte	1
+debug.c:34:6:dbgDumpHex	2

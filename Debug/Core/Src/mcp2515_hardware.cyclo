@@ -1,0 +1,6 @@
+mcp2515_hardware.c:14:6:ChipUnSelectFpC	1
+mcp2515_hardware.c:19:6:ChipSelectFpC	1
+mcp2515_hardware.c:24:6:SPIReadWriteFpC	1
+mcp2515_hardware.c:29:6:SPIWriteFpC	1
+mcp2515_hardware.c:34:9:SPIReadFpC	1
+mcp2515_hardware.c:45:6:delayMicroseconds	2

@@ -1,0 +1,6 @@
+../Core/Src/mcp2515_hardware.c:14:6:ChipUnSelectFpC	8	static
+../Core/Src/mcp2515_hardware.c:19:6:ChipSelectFpC	8	static
+../Core/Src/mcp2515_hardware.c:24:6:SPIReadWriteFpC	16	static
+../Core/Src/mcp2515_hardware.c:29:6:SPIWriteFpC	16	static
+../Core/Src/mcp2515_hardware.c:34:9:SPIReadFpC	16	static
+../Core/Src/mcp2515_hardware.c:45:6:delayMicroseconds	32	static
