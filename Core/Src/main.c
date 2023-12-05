@@ -157,7 +157,10 @@ int main(void)
   MX_FDCAN1_Init();
   MX_FDCAN2_Init();
   /* USER CODE BEGIN 2 */
+
   Init_Basic_App();
+
+  tempCanMsg_B.FrameType           = FDCAN_DATA_FRAME;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -204,20 +207,13 @@ int main(void)
 				result = readMsgBuf(&cfgCanC, &length, tempCanMsg_C.Payload);
 				if (result == CAN_OK)
 				{
-					tempCanMsg_C.DataLength    = length;
+					tempCanMsg_C.DataLength    = Convert_Can_Length_For_StmLib(length);
 					tempCanMsg_C.Identifier    = cfgCanC.can_id;
-					tempCanMsg_C.FrameType     = FDCAN_DATA_FRAME;
-					cfgCanC.ext_flg ? (tempCanMsg_C.IdType = FDCAN_EXTENDED_ID) : (tempCanMsg_C.IdType = FDCAN_STANDARD_ID);
+					cfgCanC.rtr    ?  (tempCanMsg_C.FrameType = FDCAN_REMOTE_FRAME) : (tempCanMsg_C.FrameType = FDCAN_DATA_FRAME);
+					cfgCanC.ext_flg ? (tempCanMsg_C.IdType = FDCAN_EXTENDED_ID)     : (tempCanMsg_C.IdType = FDCAN_STANDARD_ID);
 
 					debugPrint("RX, ->canC  ->route1\n");
 					canMsgRingBufferPush(&routeOne.Route_Ring_Buf, tempCanMsg_C);
-
-
-					debugPrint("canC rx new:");     debugDumpHex( tempCanMsg_C.Payload, 8);
-					debugPrintf("DataLength: %x\n", tempCanMsg_C.DataLength);
-					debugPrintf("Identifier: %x\n", tempCanMsg_C.Identifier);
-					debugPrintf("FrameType: %x\n",  tempCanMsg_C.FrameType);
-					debugPrintf("IdType: %x\n",     tempCanMsg_C.IdType);
 
 				}
 				else
@@ -241,14 +237,14 @@ int main(void)
 
 		while (result_One == CAN_OK)
 		{
-//			_Bool compResult = Compare_Is_Incoming_Message_Different_From_Previous_Message(tempCanMsgTx, routeOne.Last_Sent_Message);
-//			routeOne.Last_Sent_Message = tempCanMsgTx;
+			_Bool compResult = Compare_Is_Incoming_Message_Different_From_Previous_Message(tempCanMsgTx, routeOne.Last_Sent_Message);
+			routeOne.Last_Sent_Message = tempCanMsgTx;
 
 //			_Bool compResult = Compare_Is_Incoming_Message_Different_From_Previous_Two_Message(canMsgTx, routeOne.Penultimate_Sent_Message, routeOne.Last_Sent_Message);
 //			routeOne.Penultimate_Sent_Message = routeOne.Last_Sent_Message;
 //			routeOne.Last_Sent_Message = canMsgTx;
 
-			if (true)
+			if (compResult)
 			{
 				debugPrint("TX, route1-> canB->\n");
 
@@ -262,14 +258,11 @@ int main(void)
 					txHeader_B.IdType     = FDCAN_EXTENDED_ID;
 					txHeader_B.Identifier = ((tempCanMsgTx.Identifier << 18) + tempCanMsgTx.Payload[0]);          // Shift the 11-bit identifier to the left by 18 bits to make it a 29-bit identifier
 				}
-
-
-				debugPrint("canB Tx new:");
-				debugDumpHex(tempCanMsgTx.Payload, 8);
-				debugPrintf("DataLength: %x\n", txHeader_B.DataLength);
-				debugPrintf("Identifier: %x\n", txHeader_B.Identifier);
-				debugPrintf("FrameType: %x\n", txHeader_B.TxFrameType);
-				debugPrintf("IdType: %x\n", txHeader_B.IdType);
+				else
+				{
+					txHeader_B.IdType     = FDCAN_EXTENDED_ID;
+					txHeader_B.Identifier = tempCanMsgTx.Identifier;
+				}
 
 				HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &txHeader_B, tempCanMsgTx.Payload);  //canB den gönder
 
@@ -301,21 +294,30 @@ int main(void)
 					}
 					else
 					{
-						txHeader_A.IdType = FDCAN_EXTENDED_ID;
+						txHeader_A.IdType = FDCAN_STANDARD_ID;
 						txHeader_A.Identifier  = tempCanMsgTx.Identifier;
 					}
 
-					txHeader_A.TxFrameType = tempCanMsgTx.FrameType;
+					//txHeader_A.TxFrameType = tempCanMsgTx.FrameType;    //gerek yok canA init de atandı zaten, mainScp remote frame de sapıttığı icin hep data frame gönderilir
 					txHeader_A.DataLength  = tempCanMsgTx.DataLength;
 
 					HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &txHeader_A, tempCanMsgTx.Payload);  //canB den gönder
 
 
 						//Canc icin
-					tempCanMsgTx.IdType      ?   (tempCanMsgTx.IdType    = 1)   :   (tempCanMsgTx.IdType     = 0);
-					tempCanMsgTx.FrameType   ?   (tempCanMsgTx.FrameType = 1)   :   (tempCanMsgTx.FrameType  = 0);
+					if(tempCanMsgTx.IdType == FDCAN_EXTENDED_ID)
+					{
+						tempCanMsgTx.IdType = 0;
+						tempCanMsgTx.Identifier = tempCanMsgTx.Identifier >> 18;  //? başka bir şey
+					}
+					else
+					{
+						tempCanMsgTx.IdType = 0;
+					}
 
-					sendMsgBuffer(&cfgCanC, tempCanMsgTx.Identifier, (uint8_t)tempCanMsgTx.IdType, (uint8_t)tempCanMsgTx.FrameType, (uint8_t)tempCanMsgTx.DataLength, tempCanMsgTx.Payload);
+					//tempCanMsgTx.FrameType   = 0;   //gerek yok canB rx callback de atandı zaten, mainScp remote frame de sapıttığı icin hep data frame gönderilir
+
+					sendMsgBuffer(&cfgCanC, tempCanMsgTx.Identifier, (uint8_t)tempCanMsgTx.IdType, (uint8_t)tempCanMsgTx.FrameType, Convert_Can_Length_For_McpLib(tempCanMsgTx.DataLength), tempCanMsgTx.Payload);
 
 				   // memset(tempCanMsgTx.Payload, 0, MAX_CAN_MSG_DATA_COUNT);  //payload sıfırla
 					result_Two = canMsgRingBufferPop(&routeTwo.Route_Ring_Buf, &tempCanMsgTx);
@@ -737,15 +739,14 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
 	{
 		if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO1, &rxHeader_B, tempCanMsg_B.Payload) == HAL_OK)
 		{
-			dbgPrint("canB new RxFifo1 :"); dbgDumpHex(tempCanMsg_B.Payload, 8); dbgPrint("\n");
-			dbgPrintf("RxHeader.Identifier: %x\n", rxHeader_B.Identifier);
-			dbgPrintf("RxHeader.len: %x\n", rxHeader_B.DataLength);
+			//dbgPrint("canB new RxFifo1 :"); dbgDumpHex(tempCanMsg_B.Payload, 8); dbgPrint("\n");
+			//dbgPrintf("RxHeader.Identifier: %x\n", rxHeader_B.Identifier);
 
 			HAL_GPIO_WritePin(LED_CAN_B_RX_GPIO_Port, LED_CAN_B_RX_Pin,GPIO_PIN_SET);
 
 			tempCanMsg_B.Identifier          = rxHeader_B.Identifier;
 			tempCanMsg_B.IdType              = rxHeader_B.IdType;
-			tempCanMsg_B.FrameType           = FDCAN_DATA_FRAME;   //...   mainScp kartı remote frame aldıgında sapıtıyor
+			//tempCanMsg_B.FrameType           = FDCAN_DATA_FRAME;   //...   mainScp kartı remote frame aldıgında sapıtıyor, whil(1) den önce ataması yapıldı
 			tempCanMsg_B.DataLength          = rxHeader_B.DataLength;
 
 			canMsgRingBufferPush(&routeTwo.Route_Ring_Buf, tempCanMsg_B);

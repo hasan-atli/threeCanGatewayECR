@@ -45,8 +45,8 @@ void Init_CanB();
 void Init_CanC(MCP_BITTIME_SETUP mcp_speed);
 void Init_Basic_App();
 
-
-void Handle_Serial_Event_Messages();
+uint32_t Convert_Can_Length_For_StmLib(uint8_t canLength);
+uint8_t  Convert_Can_Length_For_McpLib(uint32_t canLength);
 
 _Bool Compare_Is_Incoming_Message_Different_From_Previous_Message(torkCanMsg newMsg, torkCanMsg oldMsg);
 _Bool Compare_Is_Incoming_Message_Different_From_Previous_Two_Message(torkCanMsg newMsg, torkCanMsg oldMsg, torkCanMsg olderMsg);

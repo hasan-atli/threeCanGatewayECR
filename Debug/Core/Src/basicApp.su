@@ -3,3 +3,5 @@
 ../Core/Src/basicApp.c:132:6:Init_CanC	32	static
 ../Core/Src/basicApp.c:158:6:Init_Basic_App	8	static
 ../Core/Src/basicApp.c:179:7:Compare_Is_Incoming_Message_Different_From_Previous_Message	24	static
+../Core/Src/basicApp.c:246:10:Convert_Can_Length_For_StmLib	16	static
+../Core/Src/basicApp.c:283:10:Convert_Can_Length_For_McpLib	16	static

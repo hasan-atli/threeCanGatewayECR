@@ -240,3 +240,78 @@ _Bool Compare_Is_Incoming_Message_Different_From_Previous_Message(torkCanMsg new
 		return false;
 	}
 }
+
+
+
+uint32_t Convert_Can_Length_For_StmLib(uint8_t canLength)
+{
+	switch (canLength)
+	{
+		case 0:
+			return FDCAN_DLC_BYTES_0;
+
+		case 1:
+			return FDCAN_DLC_BYTES_1;
+
+		case 2:
+			return FDCAN_DLC_BYTES_2;
+
+		case 3:
+			return FDCAN_DLC_BYTES_3;
+
+		case 4:
+			return FDCAN_DLC_BYTES_4;
+
+		case 5:
+			return FDCAN_DLC_BYTES_5;
+
+		case 6:
+			return FDCAN_DLC_BYTES_6;
+
+		case 7:
+			return FDCAN_DLC_BYTES_7;
+
+		case 8:
+			return FDCAN_DLC_BYTES_8;
+
+		default:
+			return FDCAN_DLC_BYTES_0;
+	}
+}
+
+
+uint8_t  Convert_Can_Length_For_McpLib(uint32_t canLength)
+{
+	switch (canLength)
+	{
+	case FDCAN_DLC_BYTES_0:
+		return 0;
+
+	case FDCAN_DLC_BYTES_1:
+		return 1;
+
+	case FDCAN_DLC_BYTES_2:
+		return 2;
+
+	case FDCAN_DLC_BYTES_3:
+		return 3;
+
+	case FDCAN_DLC_BYTES_4:
+		return 4;
+
+	case FDCAN_DLC_BYTES_5:
+		return 5;
+
+	case FDCAN_DLC_BYTES_6:
+		return 6;
+
+	case FDCAN_DLC_BYTES_7:
+		return 7;
+
+	case FDCAN_DLC_BYTES_8:
+		return 8;
+
+	default:
+		return 0;
+	}
+}
